@@ -151,3 +151,57 @@ void CGPrint(char* target, char* type)
     writeAssemblyCode(str);
     return;
 }
+
+void CGLoadConst(char* targetConstant)
+{
+    char str[100] = {};
+    strcpy(str, "ldc ");
+    strcat(str, targetConstant);
+    strcat(str, "\n");
+    writeAssemblyCode(str);
+    return;
+}
+
+void CGIncrement()
+{
+    writeAssemblyCode("ldc 1\niadd\n");
+    return;
+}
+
+void CGDecrement()
+{
+    writeAssemblyCode("ldc 1\nisub\n");
+    return;
+}
+
+void CGArithmetic(char* op, char* varType)
+{
+    char str[100] = {};
+    if(strcmp(op, "+") == 0)
+    {
+        strcpy(str, varType);
+        strcat(str, "add\n");
+    }
+    else if(strcmp(op, "-") == 0)
+    {
+        strcpy(str, varType);
+        strcat(str, "sub\n");
+    }
+    else if(strcmp(op, "*") == 0)
+    {
+        strcpy(str, varType);
+        strcat(str, "mul\n");
+    }
+    else if(strcmp(op, "/") == 0)
+    {
+        strcpy(str, varType);
+        strcat(str, "div\n");
+    }
+    else if(strcmp(op, "%") == 0)
+    {
+        strcpy(str, varType);
+        strcat(str, "rem\n");
+    }
+    writeAssemblyCode(str);
+    return;
+}

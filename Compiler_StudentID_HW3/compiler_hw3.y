@@ -43,7 +43,7 @@ void ysemError(short type);
 
 void Dbug(char *s);
 
-// Global variables coming in hot
+/* Global variables coming in hot */
 int fuckin_flag1 = 0;
 int cur_scope = 0;
 char last_queried_data_type[10] = {};
@@ -85,6 +85,8 @@ char last_queried_data_type[10] = {};
 %type <string> constants
 %type <string> primary_expression
 %type <string> print_tar
+%type <string> lp_arithmetic_operator
+%type <string> hp_arithmetic_operator
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -137,7 +139,7 @@ type
 
 compound_statement
 	: LCB RCB 
-	| LCB {cur_scope++;} a_random_nonterminal RCB {cur_scope--; set_dump_symbol(cur_scope+1); if(cur_scope==0) writeAssemblyCode(".end method\n");}
+	| LCB {cur_scope++;} a_random_nonterminal RCB {cur_scope--; set_dump_symbol(cur_scope+1); if(cur_scope==0) writeAssemblyCode("return\n.end method\n");}
 ;
 
 a_random_nonterminal
@@ -167,12 +169,12 @@ assignment_expression
 
 unary_expression
 	: postfix_expression
-	| INC unary_expression
-	| DEC unary_expression
+	| INC unary_expression					{ CGIncrement(); }
+	| DEC unary_expression					{ CGDecrement(); }
 	| unary_operator cast_expression
 
 postfix_expression
-	: primary_expression
+	: primary_expression					{ if(strcmp($1, "")!=0) CGLoadConst($1); }
 	| postfix_expression LB RB				{ isFunction = true; }
 	| postfix_expression LB arguments RB	{ isFunction = true; }
 	| postfix_expression INC
@@ -230,12 +232,12 @@ relational_expression
 ;
 
 arithmetic_expression
-	: arithmetic_expression lp_arithmetic_operator high_precedence_arithmetic_expression
+	: arithmetic_expression lp_arithmetic_operator high_precedence_arithmetic_expression		{ CGArithmetic($2, "i"); }
 	| high_precedence_arithmetic_expression
 ;
 
 high_precedence_arithmetic_expression
-	: high_precedence_arithmetic_expression hp_arithmetic_operator unary_expression
+	: high_precedence_arithmetic_expression hp_arithmetic_operator unary_expression 			{ CGArithmetic($2, "i"); }
 	| unary_expression
 ;
 
@@ -249,14 +251,14 @@ relational_operator
 ;
 
 lp_arithmetic_operator
-	: ADD
-	| SUB
+	: ADD { strcpy($$, yytext); }
+	| SUB { strcpy($$, yytext); }
 ;
 
 hp_arithmetic_operator
-	: MUL
-	| DIV
-	| MOD
+	: MUL { strcpy($$, yytext); }
+	| DIV { strcpy($$, yytext); }
+	| MOD { strcpy($$, yytext); }
 ;
 
 selection_statement

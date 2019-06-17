@@ -6,7 +6,9 @@
 .limit stack 50
 .limit locals 50
 ldc 0
-istore 1
+istore 0
+ldc 6
+iadd
 ldc d
 getstatic java/lang/System/out Ljava/io/PrintStream;
 swap
