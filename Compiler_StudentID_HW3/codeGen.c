@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include "codeGen.h"
 #include "string.h"
+#define STR_SIZE 200
 
 FILE *file;
-void writeAssemblyCode(char str[100])
+void writeAssemblyCode(char str[STR_SIZE])
 {
     file = fopen("compiler_hw3.j","a");
 
@@ -41,7 +42,7 @@ char* typeEncode(char* type)
 
 void CGGlobalVar(char* name, char* type, short init, char* val)
 {
-    char str[100] = {};
+    char str[STR_SIZE] = {};
     strcpy(str, ".field public static ");
     strcat(str, name);
     if(strcmp(type, "int") == 0)
@@ -83,7 +84,7 @@ void CGGlobalVar(char* name, char* type, short init, char* val)
 
 void CGLocalVar(char* index, char* value)
 {
-    char str[100] = {};
+    char str[STR_SIZE] = {};
     strcpy(str, "ldc ");
     strcat(str, value);
     strcat(str, "\nistore ");
@@ -94,7 +95,7 @@ void CGLocalVar(char* index, char* value)
 
 void CGFunction(char* name, char* type)
 {
-    char str[100] = {};
+    char str[STR_SIZE] = {};
     if(strcmp(name, "main")==0)
     {
         strcat(str, ".method public static main([Ljava/lang/String;)V\n");
@@ -142,7 +143,7 @@ void CGFunction(char* name, char* type)
 
 void CGPrint(char* target, char* type)
 {
-    char str[100] = {};
+    char str[STR_SIZE] = {};
     strcpy(str, "ldc ");
     strcat(str, target);
     strcat(str, "\ngetstatic java/lang/System/out Ljava/io/PrintStream;\nswap\ninvokevirtual java/io/PrintStream/println(");
@@ -152,11 +153,54 @@ void CGPrint(char* target, char* type)
     return;
 }
 
+void CGPrintRegister(char* index, char* type)
+{
+    char str[STR_SIZE] = {};
+    if(strcmp(type, "int")==0)
+        strcpy(str, "i");
+    else if(strcmp(type, "float")==0)
+        strcpy(str, "f");
+    strcat(str, "load ");
+    strcat(str, index);
+    strcat(str, "\ngetstatic java/lang/System/out Ljava/io/PrintStream;\nswap\ninvokevirtual java/io/PrintStream/println(");
+    strcat(str, typeEncode(type));
+    strcat(str, ")V\n");
+    writeAssemblyCode(str);
+    return;
+}
+
 void CGLoadConst(char* targetConstant)
 {
-    char str[100] = {};
+    char str[STR_SIZE] = {};
     strcpy(str, "ldc ");
     strcat(str, targetConstant);
+    strcat(str, "\n");
+    writeAssemblyCode(str);
+    return;
+}
+
+void CGLoadRegister(char* index, char* type)
+{
+    char str[STR_SIZE] = {};
+    if(strcmp(type, "int")==0)
+        strcpy(str, "i");
+    else if(strcmp(type, "float")==0)
+        strcpy(str, "f");
+    strcat(str, "load ");
+    strcat(str, index);
+    strcat(str, "\n");
+    writeAssemblyCode(str);
+    return;
+}
+
+void CGLoadGlobal(char* name, char* type)
+{
+    char str[STR_SIZE] = {};
+    strcpy(str, "getstatic ");
+    strcat(str, "compiler_hw3/");
+    strcat(str, name);
+    strcat(str, " ");
+    strcat(str, typeEncode(type));
     strcat(str, "\n");
     writeAssemblyCode(str);
     return;
@@ -176,7 +220,7 @@ void CGDecrement()
 
 void CGArithmetic(char* op, char* varType)
 {
-    char str[100] = {};
+    char str[STR_SIZE] = {};
     if(strcmp(op, "+") == 0)
     {
         strcpy(str, varType);
@@ -204,4 +248,13 @@ void CGArithmetic(char* op, char* varType)
     }
     writeAssemblyCode(str);
     return;
+}
+
+void CGSaveToRegister(char* index)
+{
+    char str[STR_SIZE] = {};
+    strcat(str, "istore ");
+    strcat(str, index);
+    strcat(str, "\n");
+    writeAssemblyCode(str);
 }

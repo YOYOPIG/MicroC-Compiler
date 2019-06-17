@@ -25,6 +25,7 @@ typedef struct element{
 	char Kind[10]; // 3 kinds
 	char Type[10];
 	int Scope;
+	int index;
 	char Attribute[1000]; //func input
 	bool isForwardFunction;
 	struct element* next;
@@ -47,6 +48,10 @@ void Dbug(char *s);
 int fuckin_flag1 = 0;
 int cur_scope = 0;
 char last_queried_data_type[10] = {};
+char lookup_var_name[256] = {};
+char lookup_var_type[10] = {};
+int lookup_var_scope; /*0:global, else:local*/
+char lookup_var_index[10] = {};
 
 %}
 
@@ -111,9 +116,9 @@ statement
 ;
 
 declaration
-    : type ID_expr ASGN primary_expression SEMICOLON 	{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 1, $4); else { char str[12]; sprintf(str, "%d", i);CGLocalVar($4, str);} }
-    | type ID_expr SEMICOLON							{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, ""); else { char str[12]; sprintf(str, "%d", i);CGLocalVar("0", str);} }
-	| type ID_expr ASGN arithmetic_expression SEMICOLON { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, ""); }
+    : type ID_expr ASGN primary_expression SEMICOLON 	{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 1, $4); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, $4); } }
+    | type ID_expr SEMICOLON							{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, ""); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, "0"); } }
+	| type ID_expr ASGN arithmetic_expression SEMICOLON { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, ""); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str); } }
 	| type ID_expr LB function_item_list RB SEMICOLON	{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, $2, $1, "function", true); isFunction = true; forwardDeclarationLine = true;}
 	| type ID_expr LB function_item_list RB				{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, $2, $1, "function", false); isFunction = true; CGFunction($2, $1);}
 ;
@@ -163,7 +168,7 @@ expression
 ;
 
 assignment_expression
-	: unary_expression assignment_operator assignment_expression
+	: unary_expression assignment_operator assignment_expression { CGSaveToRegister(lookup_var_index); }
     | logical_expression
 ;
 
@@ -174,7 +179,16 @@ unary_expression
 	| unary_operator cast_expression
 
 postfix_expression
-	: primary_expression					{ if(strcmp($1, "")!=0) CGLoadConst($1); }
+	: primary_expression					{ if(strcmp($1, "ID")==0) 
+												{ 
+													if(lookup_var_scope==0) 
+														CGLoadGlobal(lookup_var_name, lookup_var_type);
+													else
+														CGLoadRegister(lookup_var_index, lookup_var_type);
+												} 
+											  else if(strcmp($1, "")!=0) 
+											  	CGLoadConst($1); 
+											}
 	| postfix_expression LB RB				{ isFunction = true; }
 	| postfix_expression LB arguments RB	{ isFunction = true; }
 	| postfix_expression INC
@@ -182,7 +196,7 @@ postfix_expression
 ;
 
 primary_expression
-	: ID_expr { strcpy($$, ""); if(lookup_symbol(cur_scope, $1)==0){ errorStatus = 2; strcpy(errID, $1); } }
+	: ID_expr { strcpy($$, "ID"); if(lookup_symbol(cur_scope, $1)==0){ errorStatus = 2; strcpy(errID, $1); } }
 	| constants { strcpy($$, $1); }
 	| LB expression RB { strcpy($$, ""); }
 ;
@@ -275,12 +289,12 @@ iteration_statement
 ;
 
 print_func
-    : PRINT LB print_tar RB { CGPrint($3, last_queried_data_type); }
+    : PRINT LB print_tar RB
 ;
 
 print_tar 
-    : ID_expr { if(lookup_symbol(cur_scope, $1)==0){ errorStatus = 2;  strcpy(errID, $1);} strcpy($$, $1);}
-    | constants { strcpy($$, $1); }
+    : ID_expr { if(lookup_symbol(cur_scope, $1)==0){ errorStatus = 2;  strcpy(errID, $1);} strcpy($$, $1); CGPrintRegister(lookup_var_index, last_queried_data_type);}
+    | constants { strcpy($$, $1); CGPrint($1, last_queried_data_type);}
 ;
 
 ID_expr
@@ -369,6 +383,7 @@ int insert_symbol(int tar_scope, char name[256], char type[10], char kind[10], b
 	strcpy(newElement->Name, name);
 	strcpy(newElement->Type, type);
 	strcpy(newElement->Kind, kind);
+	newElement->index = 0;
 	newElement->isForwardFunction = forward;
 	if(strcmp(kind, "function") != 0)
 		strcpy(newElement->Attribute, "");
@@ -406,6 +421,7 @@ int insert_symbol(int tar_scope, char name[256], char type[10], char kind[10], b
 		// Empty, insert new
 		scope[tar_scope] = newElement;
 		newElement->next = NULL;
+		newElement->index = 0;
 		return 0;
 	}
 	else
@@ -421,6 +437,7 @@ int insert_symbol(int tar_scope, char name[256], char type[10], char kind[10], b
 		iter->next = newElement;
 		newElement->next = NULL;
 		index++;
+		newElement->index = index;
 		return index;
 	}
 }
@@ -437,6 +454,10 @@ int lookup_symbol(int tar_scope, char tar_name[256])
 			if(strcmp(tar_name, iter->Name) == 0)
 			{
 				strcpy(last_queried_data_type, iter->Type);
+				strcpy(lookup_var_name, iter->Name);
+				strcpy(lookup_var_type, iter->Type);
+				lookup_var_scope = cur_scope;
+				sprintf(lookup_var_index, "%d", iter->index);
 				if(iter->isForwardFunction)
 				{
 					iter->isForwardFunction = false;

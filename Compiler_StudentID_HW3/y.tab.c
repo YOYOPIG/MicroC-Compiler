@@ -89,6 +89,7 @@ typedef struct element{
 	char Kind[10]; // 3 kinds
 	char Type[10];
 	int Scope;
+	int index;
 	char Attribute[1000]; //func input
 	bool isForwardFunction;
 	struct element* next;
@@ -111,9 +112,13 @@ void Dbug(char *s);
 int fuckin_flag1 = 0;
 int cur_scope = 0;
 char last_queried_data_type[10] = {};
+char lookup_var_name[256] = {};
+char lookup_var_type[10] = {};
+int lookup_var_scope; /*0:global, else:local*/
+char lookup_var_index[10] = {};
 
 
-#line 117 "y.tab.c" /* yacc.c:339  */
+#line 122 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -251,14 +256,14 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 56 "compiler_hw3.y" /* yacc.c:355  */
+#line 61 "compiler_hw3.y" /* yacc.c:355  */
 
     int i_val;
     double f_val;
     char string[1000];
     _Bool bool_val;
 
-#line 262 "y.tab.c" /* yacc.c:355  */
+#line 267 "y.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -275,7 +280,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 279 "y.tab.c" /* yacc.c:358  */
+#line 284 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -577,16 +582,16 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    98,    98,    99,   103,   104,   105,   106,   107,   108,
-     109,   110,   114,   115,   116,   117,   118,   122,   123,   127,
-     128,   133,   134,   135,   136,   137,   141,   142,   142,   146,
-     147,   151,   152,   156,   157,   161,   162,   166,   167,   171,
-     172,   173,   174,   177,   178,   179,   180,   181,   185,   186,
-     187,   191,   192,   193,   194,   195,   199,   200,   204,   205,
-     206,   210,   211,   215,   216,   217,   218,   219,   220,   224,
-     225,   226,   230,   231,   235,   236,   240,   241,   245,   246,
-     247,   248,   249,   250,   254,   255,   259,   260,   261,   265,
-     266,   270,   271,   272,   273,   274,   278,   282,   283,   287
+       0,   103,   103,   104,   108,   109,   110,   111,   112,   113,
+     114,   115,   119,   120,   121,   122,   123,   127,   128,   132,
+     133,   138,   139,   140,   141,   142,   146,   147,   147,   151,
+     152,   156,   157,   161,   162,   166,   167,   171,   172,   176,
+     177,   178,   179,   182,   192,   193,   194,   195,   199,   200,
+     201,   205,   206,   207,   208,   209,   213,   214,   218,   219,
+     220,   224,   225,   229,   230,   231,   232,   233,   234,   238,
+     239,   240,   244,   245,   249,   250,   254,   255,   259,   260,
+     261,   262,   263,   264,   268,   269,   273,   274,   275,   279,
+     280,   284,   285,   286,   287,   288,   292,   296,   297,   301
 };
 #endif
 
@@ -1532,241 +1537,250 @@ yyreduce:
   switch (yyn)
     {
         case 12:
-#line 114 "compiler_hw3.y" /* yacc.c:1646  */
-    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-3].string), (yyvsp[-4].string), 1, (yyvsp[-1].string)); else { char str[12]; sprintf(str, "%d", i);CGLocalVar((yyvsp[-1].string), str);} }
-#line 1538 "y.tab.c" /* yacc.c:1646  */
+#line 119 "compiler_hw3.y" /* yacc.c:1646  */
+    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-3].string), (yyvsp[-4].string), 1, (yyvsp[-1].string)); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, (yyvsp[-1].string)); } }
+#line 1543 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 115 "compiler_hw3.y" /* yacc.c:1646  */
-    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-1].string), (yyvsp[-2].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-1].string), (yyvsp[-2].string), 0, ""); else { char str[12]; sprintf(str, "%d", i);CGLocalVar("0", str);} }
-#line 1544 "y.tab.c" /* yacc.c:1646  */
+#line 120 "compiler_hw3.y" /* yacc.c:1646  */
+    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-1].string), (yyvsp[-2].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-1].string), (yyvsp[-2].string), 0, ""); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, "0"); } }
+#line 1549 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 116 "compiler_hw3.y" /* yacc.c:1646  */
-    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-3].string), (yyvsp[-4].string), 0, ""); }
-#line 1550 "y.tab.c" /* yacc.c:1646  */
+#line 121 "compiler_hw3.y" /* yacc.c:1646  */
+    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-3].string), (yyvsp[-4].string), 0, ""); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str); } }
+#line 1555 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 117 "compiler_hw3.y" /* yacc.c:1646  */
+#line 122 "compiler_hw3.y" /* yacc.c:1646  */
     { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, (yyvsp[-4].string), (yyvsp[-5].string), "function", true); isFunction = true; forwardDeclarationLine = true;}
-#line 1556 "y.tab.c" /* yacc.c:1646  */
+#line 1561 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 118 "compiler_hw3.y" /* yacc.c:1646  */
+#line 123 "compiler_hw3.y" /* yacc.c:1646  */
     { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "function", false); isFunction = true; CGFunction((yyvsp[-3].string), (yyvsp[-4].string));}
-#line 1562 "y.tab.c" /* yacc.c:1646  */
+#line 1567 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 127 "compiler_hw3.y" /* yacc.c:1646  */
+#line 132 "compiler_hw3.y" /* yacc.c:1646  */
     { /*printf("[SCOPE] %d, [NAME] %s [Type] %s\n", cur_scope+1, $2, $1);*/insert_symbol(cur_scope + 1, (yyvsp[0].string), (yyvsp[-1].string), "parameter", false); }
-#line 1568 "y.tab.c" /* yacc.c:1646  */
+#line 1573 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 133 "compiler_hw3.y" /* yacc.c:1646  */
+#line 138 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), "int"); }
-#line 1574 "y.tab.c" /* yacc.c:1646  */
+#line 1579 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 134 "compiler_hw3.y" /* yacc.c:1646  */
+#line 139 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), "float"); }
-#line 1580 "y.tab.c" /* yacc.c:1646  */
+#line 1585 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 135 "compiler_hw3.y" /* yacc.c:1646  */
+#line 140 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), "bool"); }
-#line 1586 "y.tab.c" /* yacc.c:1646  */
+#line 1591 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 136 "compiler_hw3.y" /* yacc.c:1646  */
+#line 141 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), "string"); }
-#line 1592 "y.tab.c" /* yacc.c:1646  */
+#line 1597 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 137 "compiler_hw3.y" /* yacc.c:1646  */
+#line 142 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), "void"); }
-#line 1598 "y.tab.c" /* yacc.c:1646  */
+#line 1603 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 142 "compiler_hw3.y" /* yacc.c:1646  */
+#line 147 "compiler_hw3.y" /* yacc.c:1646  */
     {cur_scope++;}
-#line 1604 "y.tab.c" /* yacc.c:1646  */
+#line 1609 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 142 "compiler_hw3.y" /* yacc.c:1646  */
+#line 147 "compiler_hw3.y" /* yacc.c:1646  */
     {cur_scope--; set_dump_symbol(cur_scope+1); if(cur_scope==0) writeAssemblyCode("return\n.end method\n");}
-#line 1610 "y.tab.c" /* yacc.c:1646  */
+#line 1615 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 37:
+#line 171 "compiler_hw3.y" /* yacc.c:1646  */
+    { CGSaveToRegister(lookup_var_index); }
+#line 1621 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 172 "compiler_hw3.y" /* yacc.c:1646  */
+#line 177 "compiler_hw3.y" /* yacc.c:1646  */
     { CGIncrement(); }
-#line 1616 "y.tab.c" /* yacc.c:1646  */
+#line 1627 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 173 "compiler_hw3.y" /* yacc.c:1646  */
+#line 178 "compiler_hw3.y" /* yacc.c:1646  */
     { CGDecrement(); }
-#line 1622 "y.tab.c" /* yacc.c:1646  */
+#line 1633 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 177 "compiler_hw3.y" /* yacc.c:1646  */
-    { if(strcmp((yyvsp[0].string), "")!=0) CGLoadConst((yyvsp[0].string)); }
-#line 1628 "y.tab.c" /* yacc.c:1646  */
+#line 182 "compiler_hw3.y" /* yacc.c:1646  */
+    { if(strcmp((yyvsp[0].string), "ID")==0) 
+												{ 
+													if(lookup_var_scope==0) 
+														CGLoadGlobal(lookup_var_name, lookup_var_type);
+													else
+														CGLoadRegister(lookup_var_index, lookup_var_type);
+												} 
+											  else if(strcmp((yyvsp[0].string), "")!=0) 
+											  	CGLoadConst((yyvsp[0].string)); 
+											}
+#line 1648 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 178 "compiler_hw3.y" /* yacc.c:1646  */
+#line 192 "compiler_hw3.y" /* yacc.c:1646  */
     { isFunction = true; }
-#line 1634 "y.tab.c" /* yacc.c:1646  */
+#line 1654 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 179 "compiler_hw3.y" /* yacc.c:1646  */
+#line 193 "compiler_hw3.y" /* yacc.c:1646  */
     { isFunction = true; }
-#line 1640 "y.tab.c" /* yacc.c:1646  */
+#line 1660 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 185 "compiler_hw3.y" /* yacc.c:1646  */
-    { strcpy((yyval.string), ""); if(lookup_symbol(cur_scope, (yyvsp[0].string))==0){ errorStatus = 2; strcpy(errID, (yyvsp[0].string)); } }
-#line 1646 "y.tab.c" /* yacc.c:1646  */
+#line 199 "compiler_hw3.y" /* yacc.c:1646  */
+    { strcpy((yyval.string), "ID"); if(lookup_symbol(cur_scope, (yyvsp[0].string))==0){ errorStatus = 2; strcpy(errID, (yyvsp[0].string)); } }
+#line 1666 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 186 "compiler_hw3.y" /* yacc.c:1646  */
+#line 200 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), (yyvsp[0].string)); }
-#line 1652 "y.tab.c" /* yacc.c:1646  */
+#line 1672 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 187 "compiler_hw3.y" /* yacc.c:1646  */
+#line 201 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), ""); }
-#line 1658 "y.tab.c" /* yacc.c:1646  */
+#line 1678 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 191 "compiler_hw3.y" /* yacc.c:1646  */
+#line 205 "compiler_hw3.y" /* yacc.c:1646  */
     {strcpy((yyval.string), yytext); strcpy(last_queried_data_type, "int");}
-#line 1664 "y.tab.c" /* yacc.c:1646  */
+#line 1684 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 192 "compiler_hw3.y" /* yacc.c:1646  */
+#line 206 "compiler_hw3.y" /* yacc.c:1646  */
     {strcpy((yyval.string), yytext); strcpy(last_queried_data_type, "float");}
-#line 1670 "y.tab.c" /* yacc.c:1646  */
+#line 1690 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 193 "compiler_hw3.y" /* yacc.c:1646  */
+#line 207 "compiler_hw3.y" /* yacc.c:1646  */
     {strcpy((yyval.string), yytext); strcpy(last_queried_data_type, "string");}
-#line 1676 "y.tab.c" /* yacc.c:1646  */
+#line 1696 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 194 "compiler_hw3.y" /* yacc.c:1646  */
+#line 208 "compiler_hw3.y" /* yacc.c:1646  */
     {strcpy((yyval.string), yytext); strcpy(last_queried_data_type, "bool");}
-#line 1682 "y.tab.c" /* yacc.c:1646  */
+#line 1702 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 195 "compiler_hw3.y" /* yacc.c:1646  */
+#line 209 "compiler_hw3.y" /* yacc.c:1646  */
     {strcpy((yyval.string), yytext); strcpy(last_queried_data_type, "bool");}
-#line 1688 "y.tab.c" /* yacc.c:1646  */
+#line 1708 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 199 "compiler_hw3.y" /* yacc.c:1646  */
+#line 213 "compiler_hw3.y" /* yacc.c:1646  */
     { isArg = true; }
-#line 1694 "y.tab.c" /* yacc.c:1646  */
+#line 1714 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 200 "compiler_hw3.y" /* yacc.c:1646  */
+#line 214 "compiler_hw3.y" /* yacc.c:1646  */
     { isArg = true; }
-#line 1700 "y.tab.c" /* yacc.c:1646  */
+#line 1720 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 235 "compiler_hw3.y" /* yacc.c:1646  */
+#line 249 "compiler_hw3.y" /* yacc.c:1646  */
     { CGArithmetic((yyvsp[-1].string), "i"); }
-#line 1706 "y.tab.c" /* yacc.c:1646  */
+#line 1726 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 240 "compiler_hw3.y" /* yacc.c:1646  */
+#line 254 "compiler_hw3.y" /* yacc.c:1646  */
     { CGArithmetic((yyvsp[-1].string), "i"); }
-#line 1712 "y.tab.c" /* yacc.c:1646  */
+#line 1732 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 84:
-#line 254 "compiler_hw3.y" /* yacc.c:1646  */
+#line 268 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), yytext); }
-#line 1718 "y.tab.c" /* yacc.c:1646  */
+#line 1738 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 85:
-#line 255 "compiler_hw3.y" /* yacc.c:1646  */
+#line 269 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), yytext); }
-#line 1724 "y.tab.c" /* yacc.c:1646  */
+#line 1744 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 86:
-#line 259 "compiler_hw3.y" /* yacc.c:1646  */
+#line 273 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), yytext); }
-#line 1730 "y.tab.c" /* yacc.c:1646  */
+#line 1750 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 87:
-#line 260 "compiler_hw3.y" /* yacc.c:1646  */
+#line 274 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), yytext); }
-#line 1736 "y.tab.c" /* yacc.c:1646  */
+#line 1756 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 88:
-#line 261 "compiler_hw3.y" /* yacc.c:1646  */
+#line 275 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), yytext); }
-#line 1742 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 96:
-#line 278 "compiler_hw3.y" /* yacc.c:1646  */
-    { CGPrint((yyvsp[-1].string), last_queried_data_type); }
-#line 1748 "y.tab.c" /* yacc.c:1646  */
+#line 1762 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 97:
-#line 282 "compiler_hw3.y" /* yacc.c:1646  */
-    { if(lookup_symbol(cur_scope, (yyvsp[0].string))==0){ errorStatus = 2;  strcpy(errID, (yyvsp[0].string));} strcpy((yyval.string), (yyvsp[0].string));}
-#line 1754 "y.tab.c" /* yacc.c:1646  */
+#line 296 "compiler_hw3.y" /* yacc.c:1646  */
+    { if(lookup_symbol(cur_scope, (yyvsp[0].string))==0){ errorStatus = 2;  strcpy(errID, (yyvsp[0].string));} strcpy((yyval.string), (yyvsp[0].string)); CGPrintRegister(lookup_var_index, last_queried_data_type);}
+#line 1768 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 98:
-#line 283 "compiler_hw3.y" /* yacc.c:1646  */
-    { strcpy((yyval.string), (yyvsp[0].string)); }
-#line 1760 "y.tab.c" /* yacc.c:1646  */
+#line 297 "compiler_hw3.y" /* yacc.c:1646  */
+    { strcpy((yyval.string), (yyvsp[0].string)); CGPrint((yyvsp[0].string), last_queried_data_type);}
+#line 1774 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 99:
-#line 287 "compiler_hw3.y" /* yacc.c:1646  */
+#line 301 "compiler_hw3.y" /* yacc.c:1646  */
     { strcpy((yyval.string), yytext); }
-#line 1766 "y.tab.c" /* yacc.c:1646  */
+#line 1780 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1770 "y.tab.c" /* yacc.c:1646  */
+#line 1784 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1994,7 +2008,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 290 "compiler_hw3.y" /* yacc.c:1906  */
+#line 304 "compiler_hw3.y" /* yacc.c:1906  */
 
 
 /* C code section */
@@ -2077,6 +2091,7 @@ int insert_symbol(int tar_scope, char name[256], char type[10], char kind[10], b
 	strcpy(newElement->Name, name);
 	strcpy(newElement->Type, type);
 	strcpy(newElement->Kind, kind);
+	newElement->index = 0;
 	newElement->isForwardFunction = forward;
 	if(strcmp(kind, "function") != 0)
 		strcpy(newElement->Attribute, "");
@@ -2114,6 +2129,7 @@ int insert_symbol(int tar_scope, char name[256], char type[10], char kind[10], b
 		// Empty, insert new
 		scope[tar_scope] = newElement;
 		newElement->next = NULL;
+		newElement->index = 0;
 		return 0;
 	}
 	else
@@ -2129,6 +2145,7 @@ int insert_symbol(int tar_scope, char name[256], char type[10], char kind[10], b
 		iter->next = newElement;
 		newElement->next = NULL;
 		index++;
+		newElement->index = index;
 		return index;
 	}
 }
@@ -2145,6 +2162,10 @@ int lookup_symbol(int tar_scope, char tar_name[256])
 			if(strcmp(tar_name, iter->Name) == 0)
 			{
 				strcpy(last_queried_data_type, iter->Type);
+				strcpy(lookup_var_name, iter->Name);
+				strcpy(lookup_var_type, iter->Type);
+				lookup_var_scope = cur_scope;
+				sprintf(lookup_var_index, "%d", iter->index);
 				if(iter->isForwardFunction)
 				{
 					iter->isForwardFunction = false;
