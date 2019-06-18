@@ -1,6 +1,6 @@
 void writeAssemblyCode(char str[100]);
 void CGGlobalVar(char* name, char* type, short init, char* val);
-void CGLocalVar(char* index, char* value);
+void CGLocalVar(char* index, char* value, char* type);
 void CGFunction(char* name, char* type);
 void CGPrint(char* target, char* type);
 void CGPrintGlobal(char* name, char* type);
@@ -11,4 +11,4 @@ void CGLoadGlobal(char* name, char* type);
 void CGIncrement();
 void CGDecrement();
 void CGArithmetic(char* op, char* varType);
-void CGSaveToRegister(char* index);
+void CGSaveToRegister(char* index, char* type);

@@ -82,12 +82,43 @@ void CGGlobalVar(char* name, char* type, short init, char* val)
     return;
 }
 
-void CGLocalVar(char* index, char* value)
+void CGLocalVar(char* index, char* value, char* type)
 {
     char str[STR_SIZE] = {};
+    char myVal[100] = {};
+    strcpy(myVal, value);
     strcpy(str, "ldc ");
-    strcat(str, value);
-    strcat(str, "\nistore ");
+    // cast by fixing value 
+    if(strcmp(type, "int")==0)
+    {
+        char * pch;
+        pch = strstr(myVal,".");
+        if(pch)
+            strncpy (pch,"\0",1);
+    }
+    else if(strcmp(type, "float")==0)
+    {
+        char * pch;
+        pch = strstr(myVal,".");
+        if(!pch)
+            strcat(myVal, ".0");
+    }
+    else if(strcmp(type, "string")==0)
+    {
+        strcpy(myVal, "\"");
+        strcat(myVal, value);
+        strcat(myVal, "\"");
+    }
+    // else
+    //     strcat(str, "wtfvalue ");
+    strcat(str, myVal);
+    strcat(str, "\n");
+    if(strcmp(type, "int")==0)
+        strcat(str, "istore ");
+    else if(strcmp(type, "float")==0)
+        strcat(str, "fstore ");
+    else
+        strcat(str, "istore ");
     strcat(str, index);
     strcat(str, "\n");
     writeAssemblyCode(str);
@@ -202,6 +233,8 @@ void CGLoadRegister(char* index, char* type)
         strcpy(str, "i");
     else if(strcmp(type, "float")==0)
         strcpy(str, "f");
+    else
+        strcpy(str, "i");
     strcat(str, "load ");
     strcat(str, index);
     strcat(str, "\n");
@@ -266,10 +299,15 @@ void CGArithmetic(char* op, char* varType)
     return;
 }
 
-void CGSaveToRegister(char* index)
+void CGSaveToRegister(char* index, char* type)
 {
     char str[STR_SIZE] = {};
-    strcat(str, "istore ");
+    if(strcmp(type, "int")==0)
+        strcpy(str, "istore ");
+    else if(strcmp(type, "float")==0)
+        strcpy(str, "fstore ");
+    else
+        strcpy(str, "istore ");
     strcat(str, index);
     strcat(str, "\n");
     writeAssemblyCode(str);

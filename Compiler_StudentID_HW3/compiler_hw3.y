@@ -116,9 +116,9 @@ statement
 ;
 
 declaration
-    : type ID_expr ASGN primary_expression SEMICOLON 	{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 1, $4); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, $4); } }
-    | type ID_expr SEMICOLON							{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, ""); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, "0"); } }
-	| type ID_expr ASGN arithmetic_expression SEMICOLON { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, ""); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str); } }
+    : type ID_expr ASGN primary_expression SEMICOLON 	{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 1, $4); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, $4, $1); } }
+    | type ID_expr SEMICOLON							{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, ""); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, "0", $1); } }
+	| type ID_expr ASGN arithmetic_expression SEMICOLON { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, "todo global+-"); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str, $1); } }
 	| type ID_expr LB function_item_list RB SEMICOLON	{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, $2, $1, "function", true); isFunction = true; forwardDeclarationLine = true;}
 	| type ID_expr LB function_item_list RB				{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, $2, $1, "function", false); isFunction = true; CGFunction($2, $1);}
 ;
@@ -168,7 +168,7 @@ expression
 ;
 
 assignment_expression
-	: unary_expression assignment_operator assignment_expression { CGSaveToRegister(lookup_var_index); }
+	: unary_expression assignment_operator assignment_expression { CGSaveToRegister(lookup_var_index, lookup_var_type); }
     | logical_expression
 ;
 

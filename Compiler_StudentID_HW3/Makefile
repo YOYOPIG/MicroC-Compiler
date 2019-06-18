@@ -41,5 +41,11 @@ test4:
 	@java -jar jasmin.jar ${FNAME}.j
 	@java ${FNAME} 
 
+fuck:
+	@./${PARSER} < ./example_input/fuck.c
+	@echo -e "\n\033[1;33mmain.class output\033[0m"
+	@java -jar jasmin.jar ${FNAME}.j
+	@java ${FNAME} 
+
 clean:
 	rm -f *.o ${PARSER} ${OBJECT} 

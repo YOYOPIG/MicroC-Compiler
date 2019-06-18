@@ -1538,19 +1538,19 @@ yyreduce:
     {
         case 12:
 #line 119 "compiler_hw3.y" /* yacc.c:1646  */
-    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-3].string), (yyvsp[-4].string), 1, (yyvsp[-1].string)); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, (yyvsp[-1].string)); } }
+    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-3].string), (yyvsp[-4].string), 1, (yyvsp[-1].string)); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, (yyvsp[-1].string), (yyvsp[-4].string)); } }
 #line 1543 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
 #line 120 "compiler_hw3.y" /* yacc.c:1646  */
-    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-1].string), (yyvsp[-2].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-1].string), (yyvsp[-2].string), 0, ""); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, "0"); } }
+    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-1].string), (yyvsp[-2].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-1].string), (yyvsp[-2].string), 0, ""); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, "0", (yyvsp[-2].string)); } }
 #line 1549 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
 #line 121 "compiler_hw3.y" /* yacc.c:1646  */
-    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-3].string), (yyvsp[-4].string), 0, ""); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str); } }
+    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-3].string), (yyvsp[-4].string), 0, "todo global+-"); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str, (yyvsp[-4].string)); } }
 #line 1555 "y.tab.c" /* yacc.c:1646  */
     break;
 
@@ -1616,7 +1616,7 @@ yyreduce:
 
   case 37:
 #line 171 "compiler_hw3.y" /* yacc.c:1646  */
-    { CGSaveToRegister(lookup_var_index); }
+    { CGSaveToRegister(lookup_var_index, lookup_var_type); }
 #line 1621 "y.tab.c" /* yacc.c:1646  */
     break;
 
