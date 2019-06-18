@@ -12,7 +12,7 @@ getstatic compiler_hw3/a I
 ldc 6
 iadd
 istore 0
-iload 0
+ldc 10
 getstatic java/lang/System/out Ljava/io/PrintStream;
 swap
 invokevirtual java/io/PrintStream/println(I)V

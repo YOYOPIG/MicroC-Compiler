@@ -293,7 +293,19 @@ print_func
 ;
 
 print_tar 
-    : ID_expr { if(lookup_symbol(cur_scope, $1)==0){ errorStatus = 2;  strcpy(errID, $1);} strcpy($$, $1); CGPrintRegister(lookup_var_index, last_queried_data_type);}
+    : ID_expr { 
+				if(lookup_symbol(cur_scope, $1)==0)
+				{ 
+					errorStatus = 2;  strcpy(errID, $1);
+				} 
+				strcpy($$, $1); 
+				if(lookup_var_scope==0) 
+					CGPrintGlobal(lookup_var_name, lookup_var_type); 
+				else 
+				{ 
+					CGPrintRegister(lookup_var_index, lookup_var_type);
+				}
+			}
     | constants { strcpy($$, $1); CGPrint($1, last_queried_data_type);}
 ;
 

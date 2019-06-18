@@ -145,8 +145,29 @@ void CGPrint(char* target, char* type)
 {
     char str[STR_SIZE] = {};
     strcpy(str, "ldc ");
-    strcat(str, target);
+    if(strcmp(type, "string") == 0)
+    {
+        strcat(str, "\"");
+        strcat(str, target);
+        strcat(str, "\"");
+    }
+    else
+        strcat(str, target);
     strcat(str, "\ngetstatic java/lang/System/out Ljava/io/PrintStream;\nswap\ninvokevirtual java/io/PrintStream/println(");
+    if(strcmp(type, "string") == 0)
+        strcat(str, "Ljava/lang/String;");
+    else
+        strcat(str, typeEncode(type));
+    strcat(str, ")V\n");
+    writeAssemblyCode(str);
+    return;
+}
+
+void CGPrintGlobal(char* name, char* type)
+{
+    char str[STR_SIZE] = {};
+    CGLoadGlobal(name, type);
+    strcat(str, "getstatic java/lang/System/out Ljava/io/PrintStream;\nswap\ninvokevirtual java/io/PrintStream/println(");
     strcat(str, typeEncode(type));
     strcat(str, ")V\n");
     writeAssemblyCode(str);
@@ -156,13 +177,8 @@ void CGPrint(char* target, char* type)
 void CGPrintRegister(char* index, char* type)
 {
     char str[STR_SIZE] = {};
-    if(strcmp(type, "int")==0)
-        strcpy(str, "i");
-    else if(strcmp(type, "float")==0)
-        strcpy(str, "f");
-    strcat(str, "load ");
-    strcat(str, index);
-    strcat(str, "\ngetstatic java/lang/System/out Ljava/io/PrintStream;\nswap\ninvokevirtual java/io/PrintStream/println(");
+    CGLoadRegister(index, type);
+    strcat(str, "getstatic java/lang/System/out Ljava/io/PrintStream;\nswap\ninvokevirtual java/io/PrintStream/println(");
     strcat(str, typeEncode(type));
     strcat(str, ")V\n");
     writeAssemblyCode(str);

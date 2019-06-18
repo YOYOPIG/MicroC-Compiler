@@ -591,7 +591,7 @@ static const yytype_uint16 yyrline[] =
      220,   224,   225,   229,   230,   231,   232,   233,   234,   238,
      239,   240,   244,   245,   249,   250,   254,   255,   259,   260,
      261,   262,   263,   264,   268,   269,   273,   274,   275,   279,
-     280,   284,   285,   286,   287,   288,   292,   296,   297,   301
+     280,   284,   285,   286,   287,   288,   292,   296,   309,   313
 };
 #endif
 
@@ -1763,24 +1763,36 @@ yyreduce:
 
   case 97:
 #line 296 "compiler_hw3.y" /* yacc.c:1646  */
-    { if(lookup_symbol(cur_scope, (yyvsp[0].string))==0){ errorStatus = 2;  strcpy(errID, (yyvsp[0].string));} strcpy((yyval.string), (yyvsp[0].string)); CGPrintRegister(lookup_var_index, last_queried_data_type);}
-#line 1768 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 98:
-#line 297 "compiler_hw3.y" /* yacc.c:1646  */
-    { strcpy((yyval.string), (yyvsp[0].string)); CGPrint((yyvsp[0].string), last_queried_data_type);}
-#line 1774 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 99:
-#line 301 "compiler_hw3.y" /* yacc.c:1646  */
-    { strcpy((yyval.string), yytext); }
+    { 
+				if(lookup_symbol(cur_scope, (yyvsp[0].string))==0)
+				{ 
+					errorStatus = 2;  strcpy(errID, (yyvsp[0].string));
+				} 
+				strcpy((yyval.string), (yyvsp[0].string)); 
+				if(lookup_var_scope==0) 
+					CGPrintGlobal(lookup_var_name, lookup_var_type); 
+				else 
+				{ 
+					CGPrintRegister(lookup_var_index, lookup_var_type);
+				}
+			}
 #line 1780 "y.tab.c" /* yacc.c:1646  */
     break;
 
+  case 98:
+#line 309 "compiler_hw3.y" /* yacc.c:1646  */
+    { strcpy((yyval.string), (yyvsp[0].string)); CGPrint((yyvsp[0].string), last_queried_data_type);}
+#line 1786 "y.tab.c" /* yacc.c:1646  */
+    break;
 
-#line 1784 "y.tab.c" /* yacc.c:1646  */
+  case 99:
+#line 313 "compiler_hw3.y" /* yacc.c:1646  */
+    { strcpy((yyval.string), yytext); }
+#line 1792 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+
+#line 1796 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2008,7 +2020,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 304 "compiler_hw3.y" /* yacc.c:1906  */
+#line 316 "compiler_hw3.y" /* yacc.c:1906  */
 
 
 /* C code section */

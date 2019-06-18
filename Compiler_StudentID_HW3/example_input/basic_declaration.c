@@ -3,7 +3,7 @@ int b;
 void main() {
     int d;
     d = a + 6;
-    print(d);
+    print(10);
 
     return;
 }
