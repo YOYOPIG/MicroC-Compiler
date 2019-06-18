@@ -5,7 +5,11 @@
 .method public static main([Ljava/lang/String;)V
 .limit stack 50
 .limit locals 50
-ldc 3
+ldc 6
+istore 0
+iload 0
+ldc 2
+iadd
 istore 0
 iload 0
 getstatic java/lang/System/out Ljava/io/PrintStream;

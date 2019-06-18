@@ -11,4 +11,5 @@ void CGLoadGlobal(char* name, char* type);
 void CGIncrement();
 void CGDecrement();
 void CGArithmetic(char* op, char* varType);
+void CGCheckSpecialAssignment(char* op, char* varType);
 void CGSaveToRegister(char* index, char* type);

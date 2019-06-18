@@ -52,6 +52,9 @@ char lookup_var_name[256] = {};
 char lookup_var_type[10] = {};
 int lookup_var_scope; /*0:global, else:local*/
 char lookup_var_index[10] = {};
+char assign_var_name[256] = {};
+char assign_var_type[10] = {};
+char assign_var_index[10] = {};
 
 %}
 
@@ -92,6 +95,7 @@ char lookup_var_index[10] = {};
 %type <string> print_tar
 %type <string> lp_arithmetic_operator
 %type <string> hp_arithmetic_operator
+%type <string> assignment_operator
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -168,13 +172,13 @@ expression
 ;
 
 assignment_expression
-	: unary_expression assignment_operator assignment_expression { CGSaveToRegister(lookup_var_index, lookup_var_type); }
+	: unary_expression { strcpy(assign_var_index, lookup_var_index); strcpy(assign_var_type, lookup_var_type); } assignment_operator assignment_expression { printf("\nWEEEEEE\n%s\n", $3);CGCheckSpecialAssignment($3, assign_var_type); CGSaveToRegister(assign_var_index, assign_var_type); }
     | logical_expression
 ;
 
 unary_expression
 	: postfix_expression
-	| INC unary_expression					{ CGIncrement(); }
+	| INC unary_expression					{ CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); }
 	| DEC unary_expression					{ CGDecrement(); }
 	| unary_operator cast_expression
 
@@ -191,8 +195,8 @@ postfix_expression
 											}
 	| postfix_expression LB RB				{ isFunction = true; }
 	| postfix_expression LB arguments RB	{ isFunction = true; }
-	| postfix_expression INC
-	| postfix_expression DEC
+	| postfix_expression INC				{ CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); }
+	| postfix_expression DEC				{ CGDecrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); }
 ;
 
 primary_expression
@@ -226,12 +230,12 @@ cast_expression
 ;
 
 assignment_operator
-	: ASGN
-	| MULASGN
-	| DIVASGN
-	| MODASGN
-	| ADDASGN
-	| SUBASGN
+	: ASGN		{ strcpy($$, yytext); }
+	| MULASGN	{ strcpy($$, yytext); }
+	| DIVASGN	{ strcpy($$, yytext); }
+	| MODASGN	{ strcpy($$, yytext); }
+	| ADDASGN	{ strcpy($$, yytext); }
+	| SUBASGN	{ strcpy($$, yytext); }
 ;
 
 logical_expression
@@ -246,12 +250,12 @@ relational_expression
 ;
 
 arithmetic_expression
-	: arithmetic_expression lp_arithmetic_operator high_precedence_arithmetic_expression		{ CGArithmetic($2, "i"); }
+	: arithmetic_expression lp_arithmetic_operator high_precedence_arithmetic_expression		{ CGArithmetic($2, "int"); }
 	| high_precedence_arithmetic_expression
 ;
 
 high_precedence_arithmetic_expression
-	: high_precedence_arithmetic_expression hp_arithmetic_operator unary_expression 			{ CGArithmetic($2, "i"); }
+	: high_precedence_arithmetic_expression hp_arithmetic_operator unary_expression 			{ CGArithmetic($2, "int"); }
 	| unary_expression
 ;
 

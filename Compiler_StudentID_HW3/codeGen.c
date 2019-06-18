@@ -270,33 +270,53 @@ void CGDecrement()
 void CGArithmetic(char* op, char* varType)
 {
     char str[STR_SIZE] = {};
+    char myType[10] = {};
+    if(strcmp(varType, "int") == 0)
+        strcpy(myType, "i");
+    else if(strcmp(varType, "float") == 0)
+        strcpy(myType, "f");
+    
     if(strcmp(op, "+") == 0)
     {
-        strcpy(str, varType);
+        strcpy(str, myType);
         strcat(str, "add\n");
     }
     else if(strcmp(op, "-") == 0)
     {
-        strcpy(str, varType);
+        strcpy(str, myType);
         strcat(str, "sub\n");
     }
     else if(strcmp(op, "*") == 0)
     {
-        strcpy(str, varType);
+        strcpy(str, myType);
         strcat(str, "mul\n");
     }
     else if(strcmp(op, "/") == 0)
     {
-        strcpy(str, varType);
+        strcpy(str, myType);
         strcat(str, "div\n");
     }
     else if(strcmp(op, "%") == 0)
     {
-        strcpy(str, varType);
+        strcpy(str, myType);
         strcat(str, "rem\n");
     }
     writeAssemblyCode(str);
     return;
+}
+
+void CGCheckSpecialAssignment(char* op, char* varType)
+{
+    if(strcmp(op, "+=")==0)
+        CGArithmetic("+", varType);
+    else if(strcmp(op, "-=")==0)
+        CGArithmetic("-", varType);
+    else if(strcmp(op, "*=")==0)
+        CGArithmetic("*", varType);
+    else if(strcmp(op, "/=")==0)
+        CGArithmetic("/", varType);
+    else if(strcmp(op, "%=")==0)
+        CGArithmetic("%", varType);
 }
 
 void CGSaveToRegister(char* index, char* type)
