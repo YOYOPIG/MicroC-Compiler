@@ -122,7 +122,7 @@ statement
 declaration
     : type ID_expr ASGN primary_expression SEMICOLON 	{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 1, $4); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, $4, $1); } }
     | type ID_expr SEMICOLON							{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, ""); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, "0", $1); } }
-	| type ID_expr ASGN arithmetic_expression SEMICOLON { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, "todo global+-"); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str, $1); } }
+	| type ID_expr ASGN arithmetic_expression SEMICOLON { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, "No globals here"); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str, $1); } }
 	| type ID_expr LB function_item_list RB SEMICOLON	{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, $2, $1, "function", true); isFunction = true; forwardDeclarationLine = true;}
 	| type ID_expr LB function_item_list RB				{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, $2, $1, "function", false); isFunction = true; CGFunction($2, $1);}
 ;
@@ -172,14 +172,14 @@ expression
 ;
 
 assignment_expression
-	: unary_expression { strcpy(assign_var_index, lookup_var_index); strcpy(assign_var_type, lookup_var_type); } assignment_operator assignment_expression { printf("\nWEEEEEE\n%s\n", $3);CGCheckSpecialAssignment($3, assign_var_type); CGSaveToRegister(assign_var_index, assign_var_type); }
+	: unary_expression { strcpy(assign_var_index, lookup_var_index); strcpy(assign_var_type, lookup_var_type); } assignment_operator assignment_expression { printf("\nWEEEEEE\n%d\n", lookup_var_scope);CGCheckSpecialAssignment($3, assign_var_type); CGSaveToRegister(assign_var_index, assign_var_type); }
     | logical_expression
 ;
 
 unary_expression
 	: postfix_expression
-	| INC unary_expression					{ CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); }
-	| DEC unary_expression					{ CGDecrement(); }
+	| INC unary_expression					{ CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); }
+	| DEC unary_expression					{ CGDecrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); }
 	| unary_operator cast_expression
 
 postfix_expression
@@ -195,8 +195,8 @@ postfix_expression
 											}
 	| postfix_expression LB RB				{ isFunction = true; }
 	| postfix_expression LB arguments RB	{ isFunction = true; }
-	| postfix_expression INC				{ CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); }
-	| postfix_expression DEC				{ CGDecrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); }
+	| postfix_expression INC				{ CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); CGDecrement(); }
+	| postfix_expression DEC				{ CGDecrement(); CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); CGIncrement(); }
 ;
 
 primary_expression

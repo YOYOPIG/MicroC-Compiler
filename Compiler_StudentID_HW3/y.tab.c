@@ -1548,7 +1548,7 @@ yyreduce:
 
   case 14:
 #line 125 "compiler_hw3.y" /* yacc.c:1646  */
-    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-3].string), (yyvsp[-4].string), 0, "todo global+-"); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str, (yyvsp[-4].string)); } }
+    { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, (yyvsp[-3].string), (yyvsp[-4].string), "variable", false); if(cur_scope==0) CGGlobalVar((yyvsp[-3].string), (yyvsp[-4].string), 0, "No globals here"); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str, (yyvsp[-4].string)); } }
 #line 1553 "y.tab.c" /* yacc.c:1646  */
     break;
 
@@ -1620,19 +1620,19 @@ yyreduce:
 
   case 38:
 #line 175 "compiler_hw3.y" /* yacc.c:1646  */
-    { printf("\nWEEEEEE\n%s\n", (yyvsp[-1].string));CGCheckSpecialAssignment((yyvsp[-1].string), assign_var_type); CGSaveToRegister(assign_var_index, assign_var_type); }
+    { printf("\nWEEEEEE\n%d\n", lookup_var_scope);CGCheckSpecialAssignment((yyvsp[-1].string), assign_var_type); CGSaveToRegister(assign_var_index, assign_var_type); }
 #line 1625 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
 #line 181 "compiler_hw3.y" /* yacc.c:1646  */
-    { CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); }
+    { CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); }
 #line 1631 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
 #line 182 "compiler_hw3.y" /* yacc.c:1646  */
-    { CGDecrement(); }
+    { CGDecrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); }
 #line 1637 "y.tab.c" /* yacc.c:1646  */
     break;
 
@@ -1665,13 +1665,13 @@ yyreduce:
 
   case 47:
 #line 198 "compiler_hw3.y" /* yacc.c:1646  */
-    { CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); }
+    { CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); CGDecrement(); }
 #line 1670 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
 #line 199 "compiler_hw3.y" /* yacc.c:1646  */
-    { CGDecrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); }
+    { CGDecrement(); CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); CGIncrement(); }
 #line 1676 "y.tab.c" /* yacc.c:1646  */
     break;
 

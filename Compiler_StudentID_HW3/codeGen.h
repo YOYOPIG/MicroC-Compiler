@@ -13,3 +13,4 @@ void CGDecrement();
 void CGArithmetic(char* op, char* varType);
 void CGCheckSpecialAssignment(char* op, char* varType);
 void CGSaveToRegister(char* index, char* type);
+void CGSaveToGlobal(char* name, char* type);

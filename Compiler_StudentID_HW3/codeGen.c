@@ -43,6 +43,32 @@ char* typeEncode(char* type)
 void CGGlobalVar(char* name, char* type, short init, char* val)
 {
     char str[STR_SIZE] = {};
+    // casting
+    char myVal[100] = {};
+    strcpy(myVal, val);
+    if(strcmp(type, "int")==0)
+    {
+        char * pch;
+        pch = strstr(myVal,".");
+        if(pch)
+            strncpy (pch,"\0",1);
+    }
+    else if(strcmp(type, "float")==0)
+    {
+        char * pch;
+        pch = strstr(myVal,".");
+        if(!pch)
+            strcat(myVal, ".0");
+    }
+    else if(strcmp(type, "string")==0)
+    {
+        strcpy(myVal, "\"");
+        strcat(myVal, val);
+        strcat(myVal, "\"");
+    }
+    // else
+    //     strcat(str, "wtfvalue ");
+
     strcpy(str, ".field public static ");
     strcat(str, name);
     if(strcmp(type, "int") == 0)
@@ -74,7 +100,7 @@ void CGGlobalVar(char* name, char* type, short init, char* val)
     if(init == 1)
     {
         strcat(str, " = ");
-        strcat(str, val);
+        strcat(str, myVal);
     }
     strcat(str, "\n");
     writeAssemblyCode(str);
@@ -331,4 +357,9 @@ void CGSaveToRegister(char* index, char* type)
     strcat(str, index);
     strcat(str, "\n");
     writeAssemblyCode(str);
+}
+
+void CGSaveToGlobal(char* name, char* type)
+{
+    return;
 }
