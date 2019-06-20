@@ -3,9 +3,9 @@ int b;
 void main() {
     int d;
     int c = 3;
-    c = 2 + 3*4;
-    print(d);
-    print(c);
+    a = 1+ ++b;
+    print(b);
+    print(a);
     //d = a + 6;
 
     return;

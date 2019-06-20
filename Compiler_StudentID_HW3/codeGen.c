@@ -361,5 +361,13 @@ void CGSaveToRegister(char* index, char* type)
 
 void CGSaveToGlobal(char* name, char* type)
 {
+    char str[STR_SIZE] = {};
+    strcpy(str, "putstatic ");
+    strcat(str, "compiler_hw3/");
+    strcat(str, name);
+    strcat(str, " ");
+    strcat(str, typeEncode(type));
+    strcat(str, "\n");
+    writeAssemblyCode(str);
     return;
 }

@@ -55,6 +55,7 @@ char lookup_var_index[10] = {};
 char assign_var_name[256] = {};
 char assign_var_type[10] = {};
 char assign_var_index[10] = {};
+int assign_var_scope; /*0:global, else:local*/
 
 %}
 
@@ -172,14 +173,14 @@ expression
 ;
 
 assignment_expression
-	: unary_expression { strcpy(assign_var_index, lookup_var_index); strcpy(assign_var_type, lookup_var_type); } assignment_operator assignment_expression { printf("\nWEEEEEE\n%d\n", lookup_var_scope);CGCheckSpecialAssignment($3, assign_var_type); CGSaveToRegister(assign_var_index, assign_var_type); }
+	: unary_expression { assign_var_scope = lookup_var_scope; strcpy(assign_var_index, lookup_var_index); strcpy(assign_var_type, lookup_var_type); strcpy(assign_var_name, lookup_var_name); } assignment_operator assignment_expression { CGCheckSpecialAssignment($3, assign_var_type); if(assign_var_scope == 0) CGSaveToGlobal(assign_var_name, assign_var_type); else CGSaveToRegister(assign_var_index, assign_var_type); }
     | logical_expression
 ;
 
 unary_expression
 	: postfix_expression
-	| INC unary_expression					{ CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); }
-	| DEC unary_expression					{ CGDecrement(); CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); }
+	| INC unary_expression					{ CGIncrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); } }
+	| DEC unary_expression					{ CGDecrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); } }
 	| unary_operator cast_expression
 
 postfix_expression
@@ -195,8 +196,8 @@ postfix_expression
 											}
 	| postfix_expression LB RB				{ isFunction = true; }
 	| postfix_expression LB arguments RB	{ isFunction = true; }
-	| postfix_expression INC				{ CGIncrement(); CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); CGDecrement(); }
-	| postfix_expression DEC				{ CGDecrement(); CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); CGIncrement(); }
+	| postfix_expression INC				{ CGIncrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); } CGDecrement(); }
+	| postfix_expression DEC				{ CGDecrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); } CGIncrement(); }
 ;
 
 primary_expression
