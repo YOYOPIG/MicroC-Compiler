@@ -51,13 +51,18 @@ int cur_scope = 0;
 char last_queried_data_type[10] = {};
 char lookup_var_name[256] = {};
 char lookup_var_type[10] = {};
+char lookup_var_kind[10] = {};
 int lookup_var_scope; /*0:global, else:local*/
 char lookup_var_index[10] = {};
+char lookup_var_attrib[1000] = {};
 char assign_var_name[256] = {};
 char assign_var_type[10] = {};
 char assign_var_index[10] = {};
 int assign_var_scope; /*0:global, else:local*/
 int label_ctr = 0;
+char called_function_name[256] = {};
+char called_function_attrib[1000] = {};
+char called_function_type[10] = {};
 
 
 %}
@@ -94,6 +99,8 @@ int label_ctr = 0;
 /* Nonterminal with return, which need to sepcify type */
 %type <string> type
 %type <string> ID_expr
+%type <string> function_item
+%type <string> function_item_list
 %type <string> constants
 %type <string> primary_expression
 %type <string> print_tar
@@ -129,17 +136,17 @@ declaration
     | type ID_expr SEMICOLON							{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, ""); else { char str[12]; sprintf(str, "%d", i);CGLocalVar(str, "0", $1); } }
 	| type ID_expr ASGN arithmetic_expression SEMICOLON { /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/int i = insert_symbol(cur_scope, $2, $1, "variable", false); if(cur_scope==0) CGGlobalVar($2, $1, 0, "No globals here"); else { char str[12]; sprintf(str, "%d", i);CGSaveToRegister(str, $1); } }
 	| type ID_expr LB function_item_list RB SEMICOLON	{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, $2, $1, "function", true); isFunction = true; forwardDeclarationLine = true;}
-	| type ID_expr LB function_item_list RB				{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, $2, $1, "function", false); isFunction = true; CGFunction($2, $1);}
+	| type ID_expr LB function_item_list RB				{ /*[SCOPE] cur_scope, [NAME] $2 [Type] $1*/insert_symbol(cur_scope, $2, $1, "function", false); isFunction = true; CGFunction($2, $1, $4);}
 ;
 
 function_item_list
-	: function_item_list COMMA function_item
-	| function_item
+	: function_item_list COMMA function_item		{ char str[1000] = {}; strcpy(str, $1); strcat(str, $3); strcpy($$, str); }
+	| function_item									{ strcpy($$, $1);}
 ;
 
 function_item
-	: type ID_expr { /*printf("[SCOPE] %d, [NAME] %s [Type] %s\n", cur_scope+1, $2, $1);*/insert_symbol(cur_scope + 1, $2, $1, "parameter", false); }
-	|
+	: type ID_expr { /*printf("[SCOPE] %d, [NAME] %s [Type] %s\n", cur_scope+1, $2, $1);*/insert_symbol(cur_scope + 1, $2, $1, "parameter", false); strcpy($$, typeEncode($1)); }
+	|				{ strcpy($$, "");  }
 ;
 
 /* actions can be taken when meet the token or rule */
@@ -162,8 +169,7 @@ a_random_nonterminal
 ;
 
 another_random_nonterminal_what_is_going_on_out_here
-	: declaration
-	| statement
+	: statement
 ;
 
 expression_statement
@@ -188,7 +194,7 @@ unary_expression
 	| unary_operator cast_expression
 
 postfix_expression
-	: primary_expression					{ if(strcmp($1, "ID")==0) 
+	: primary_expression					{ if(strcmp($1, "ID")==0 && strcmp(lookup_var_kind, "function") != 0) 
 												{ 
 													if(lookup_var_scope==0) 
 														CGLoadGlobal(lookup_var_name, lookup_var_type);
@@ -197,11 +203,11 @@ postfix_expression
 													/*if(lookup_var_type == "int")
 														writeAssemblyCode("i2f");*/
 												} 
-											  else if(strcmp($1, "")!=0) 
+											  else if(strcmp($1, "")!=0 && strcmp($1, "ID")!=0) 
 											  	CGLoadConst($1); 
 											}
-	| postfix_expression LB RB				{ isFunction = true; }
-	| postfix_expression LB arguments RB	{ isFunction = true; }
+	| postfix_expression LB RB				{ isFunction = true; CGCallFunction(lookup_var_name, typeEncode(lookup_var_type), "");}
+	| postfix_expression LB { strcpy(called_function_name, lookup_var_name); strcpy(called_function_type, lookup_var_type); strcpy(called_function_attrib, lookup_var_attrib);} arguments RB	{ isFunction = true; CGCallFunction(called_function_name, typeEncode(called_function_type), called_function_attrib);}
 	| postfix_expression INC				{ jvm_stack_trash_ctr++; CGIncrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); } CGDecrement(); }
 	| postfix_expression DEC				{ jvm_stack_trash_ctr++; CGDecrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); } CGIncrement(); }
 ;
@@ -479,6 +485,8 @@ int lookup_symbol(int tar_scope, char tar_name[256])
 				strcpy(last_queried_data_type, iter->Type);
 				strcpy(lookup_var_name, iter->Name);
 				strcpy(lookup_var_type, iter->Type);
+				strcpy(lookup_var_kind, iter->Kind);
+				strcpy(lookup_var_attrib, iter->Attribute);
 				lookup_var_scope = cur_scope;
 				sprintf(lookup_var_index, "%d", iter->index);
 				if(iter->isForwardFunction)

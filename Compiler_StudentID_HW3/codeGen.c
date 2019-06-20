@@ -155,7 +155,7 @@ void CGLocalVar(char* index, char* value, char* type)
     writeAssemblyCode(str);
 }
 
-void CGFunction(char* name, char* type)
+void CGFunction(char* name, char* type, char* params)
 {
     char str[STR_SIZE] = {};
     if(strcmp(name, "main")==0)
@@ -167,31 +167,31 @@ void CGFunction(char* name, char* type)
         strcat(str, ".method public static ");
         strcat(str, name);
         strcat(str, "(");
-        //strcat(str, params);
+        strcat(str, params);
         strcat(str, ")");
         if(strcmp(type, "int") == 0)
         {
-            strcat(str, " I");
+            strcat(str, "I");
         }
         else if(strcmp(type, "float") == 0)
         {
-            strcat(str, " F");
+            strcat(str, "F");
         }
         else if(strcmp(type, "bool") == 0)
         {
-            strcat(str, " Z");
+            strcat(str, "Z");
         }
         else if(strcmp(type, "void") == 0)
         {
-            strcat(str, " V");
+            strcat(str, "V");
         }
         else if(strcmp(type, "string") == 0)
         {
-            strcat(str, " S");
+            strcat(str, "S");
         }
         else
         {
-            strcat(str, " WTF");
+            strcat(str, "WTF");
         }
         strcat(str, "\n");
     }
@@ -199,7 +199,28 @@ void CGFunction(char* name, char* type)
     
     strcat(str, "\n");
     writeAssemblyCode(str);
-    printf("%s\n", str);
+    return;
+}
+
+void CGCallFunction(char* name, char* type, char* params)
+{
+    char myParams[100] = {};
+    char *pch = strtok(params,",");
+    while (pch != NULL)
+    {
+        strcat(myParams, typeEncode(pch));
+        pch = strtok (NULL, ",");
+    } 
+
+    char str[STR_SIZE] = {};
+    strcpy(str, "invokestatic compiler_hw3/");
+    strcat(str, name);
+    strcat(str, "(");
+    strcat(str, myParams);
+    strcat(str, ")");
+    strcat(str, type);
+    strcat(str, "\n");
+    writeAssemblyCode(str);
     return;
 }
 
