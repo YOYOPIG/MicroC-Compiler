@@ -5,11 +5,16 @@ void main() {
     int c = 3;
     while(c<5)
     {
-        c++;
+        while(1>2)
+        {
+            c+=1;
+        }
     }
+    while(1>2)
+        {
+            c+=1;
+        }
     
-    
-    print(c);
 
     return;
 }

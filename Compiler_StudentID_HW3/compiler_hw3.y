@@ -120,8 +120,8 @@ statement
     | selection_statement
     | iteration_statement
     | print_func
-	| RET SEMICOLON
-	| RET assignment_expression SEMICOLON
+	| RET SEMICOLON									{ writeAssemblyCode("return\n"); }
+	| RET assignment_expression SEMICOLON			{ if(strcmp(lookup_var_type, "float") == 0) writeAssemblyCode("freturn\n"); else writeAssemblyCode("ireturn\n");}
 ;
 
 declaration
@@ -153,7 +153,7 @@ type
 
 compound_statement
 	: LCB RCB 
-	| LCB {cur_scope++;} a_random_nonterminal RCB {cur_scope--; set_dump_symbol(cur_scope+1); if(cur_scope==0) writeAssemblyCode("return\n.end method\n");}
+	| LCB {cur_scope++;} a_random_nonterminal RCB {cur_scope--; set_dump_symbol(cur_scope+1); if(cur_scope==0) writeAssemblyCode(".end method\n");}
 ;
 
 a_random_nonterminal
@@ -292,7 +292,7 @@ selection_statement
 ;
 
 iteration_statement
-    : WHILE { CGWhileHead(label_ctr); } LB expression RB statement						{ label_ctr--; CGWhileEnd(label_ctr); }
+    : WHILE { CGWhileHead(label_ctr); $<i_val>$ = label_ctr;} LB expression RB statement						{ CGWhileEnd($<i_val>2); }
 	| FOR LB expression_statement expression_statement RB statement
 	| FOR LB expression_statement expression_statement expression RB statement
 	| FOR LB declaration expression_statement RB statement
