@@ -15,6 +15,7 @@ extern bool forwardDeclarationLine;
 extern char errID[256];
 extern bool dumpTheTableRightHereAccordingToTheHomeworkRequirement;
 extern int tableScope;
+extern int jvm_stack_trash_ctr; //trash caused by ++, --
 
 ////For jasmin code gen
 FILE* file;
@@ -56,6 +57,8 @@ char assign_var_name[256] = {};
 char assign_var_type[10] = {};
 char assign_var_index[10] = {};
 int assign_var_scope; /*0:global, else:local*/
+int label_ctr = 0;
+
 
 %}
 
@@ -97,6 +100,7 @@ int assign_var_scope; /*0:global, else:local*/
 %type <string> lp_arithmetic_operator
 %type <string> hp_arithmetic_operator
 %type <string> assignment_operator
+%type <string> relational_operator
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -173,14 +177,14 @@ expression
 ;
 
 assignment_expression
-	: unary_expression { assign_var_scope = lookup_var_scope; strcpy(assign_var_index, lookup_var_index); strcpy(assign_var_type, lookup_var_type); strcpy(assign_var_name, lookup_var_name); } assignment_operator assignment_expression { CGCheckSpecialAssignment($3, assign_var_type); if(assign_var_scope == 0) CGSaveToGlobal(assign_var_name, assign_var_type); else CGSaveToRegister(assign_var_index, assign_var_type); }
+	: unary_expression { assign_var_scope = lookup_var_scope; strcpy(assign_var_index, lookup_var_index); strcpy(assign_var_type, lookup_var_type); strcpy(assign_var_name, lookup_var_name); } assignment_operator assignment_expression { int sp = CGCheckSpecialAssignment($3, assign_var_type); if(assign_var_scope == 0) CGSaveToGlobal(assign_var_name, assign_var_type); else CGSaveToRegister(assign_var_index, assign_var_type); if(sp==1) CGPop();  jvm_stack_trash_ctr = 0; }
     | logical_expression
 ;
 
 unary_expression
 	: postfix_expression
-	| INC unary_expression					{ CGIncrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); } }
-	| DEC unary_expression					{ CGDecrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); } }
+	| INC unary_expression					{ jvm_stack_trash_ctr++; CGIncrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); } }
+	| DEC unary_expression					{ jvm_stack_trash_ctr++; CGDecrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type); CGLoadRegister(lookup_var_index, lookup_var_type); } }
 	| unary_operator cast_expression
 
 postfix_expression
@@ -190,14 +194,16 @@ postfix_expression
 														CGLoadGlobal(lookup_var_name, lookup_var_type);
 													else
 														CGLoadRegister(lookup_var_index, lookup_var_type);
+													/*if(lookup_var_type == "int")
+														writeAssemblyCode("i2f");*/
 												} 
 											  else if(strcmp($1, "")!=0) 
 											  	CGLoadConst($1); 
 											}
 	| postfix_expression LB RB				{ isFunction = true; }
 	| postfix_expression LB arguments RB	{ isFunction = true; }
-	| postfix_expression INC				{ CGIncrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); } CGDecrement(); }
-	| postfix_expression DEC				{ CGDecrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); } CGIncrement(); }
+	| postfix_expression INC				{ jvm_stack_trash_ctr++; CGIncrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); } CGDecrement(); }
+	| postfix_expression DEC				{ jvm_stack_trash_ctr++; CGDecrement(); if(lookup_var_scope == 0) {CGSaveToGlobal(lookup_var_name, lookup_var_type); CGLoadGlobal(lookup_var_name, lookup_var_type);} else {CGSaveToRegister(lookup_var_index, lookup_var_type);  CGLoadRegister(lookup_var_index, lookup_var_type); } CGIncrement(); }
 ;
 
 primary_expression
@@ -246,27 +252,27 @@ logical_expression
 ;
 
 relational_expression
-	: relational_expression relational_operator arithmetic_expression
+	: relational_expression relational_operator arithmetic_expression 						{ CGWhileLoop($2, lookup_var_type, label_ctr); label_ctr++; }
 	| arithmetic_expression
 ;
 
 arithmetic_expression
-	: arithmetic_expression lp_arithmetic_operator high_precedence_arithmetic_expression		{ CGArithmetic($2, "int"); }
+	: arithmetic_expression lp_arithmetic_operator high_precedence_arithmetic_expression		{ CGArithmetic($2, assign_var_type); }
 	| high_precedence_arithmetic_expression
 ;
 
 high_precedence_arithmetic_expression
-	: high_precedence_arithmetic_expression hp_arithmetic_operator unary_expression 			{ CGArithmetic($2, "int"); }
+	: high_precedence_arithmetic_expression hp_arithmetic_operator unary_expression 			{ CGArithmetic($2, assign_var_type); }
 	| unary_expression
 ;
 
 relational_operator
-	: MT
-	| LT
-	| MTE
-	| LTE
-	| EQ
-	| NE
+	: MT	{ strcpy($$, yytext); }
+	| LT	{ strcpy($$, yytext); }
+	| MTE	{ strcpy($$, yytext); }
+	| LTE	{ strcpy($$, yytext); }
+	| EQ	{ strcpy($$, yytext); }
+	| NE	{ strcpy($$, yytext); }
 ;
 
 lp_arithmetic_operator
@@ -286,7 +292,7 @@ selection_statement
 ;
 
 iteration_statement
-    : WHILE LB expression RB statement
+    : WHILE { CGWhileHead(label_ctr); } LB expression RB statement						{ label_ctr--; CGWhileEnd(label_ctr); }
 	| FOR LB expression_statement expression_statement RB statement
 	| FOR LB expression_statement expression_statement expression RB statement
 	| FOR LB declaration expression_statement RB statement

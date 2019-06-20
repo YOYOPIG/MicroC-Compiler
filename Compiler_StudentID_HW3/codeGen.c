@@ -40,6 +40,11 @@ char* typeEncode(char* type)
     }
 }
 
+void CGPop()
+{
+    writeAssemblyCode("pop\n");
+}
+
 void CGGlobalVar(char* name, char* type, short init, char* val)
 {
     char str[STR_SIZE] = {};
@@ -252,6 +257,21 @@ void CGLoadConst(char* targetConstant)
     return;
 }
 
+void CGLoadConstAsFloat(char* targetConstant)
+{
+    char str[STR_SIZE] = {};
+    //cast to float
+    char * pch;
+    pch = strstr(targetConstant,".");
+    if(!pch)
+        strcat(targetConstant, ".0");
+    strcpy(str, "ldc ");
+    strcat(str, targetConstant);
+    strcat(str, "\n");
+    writeAssemblyCode(str);
+    return;
+}
+
 void CGLoadRegister(char* index, char* type)
 {
     char str[STR_SIZE] = {};
@@ -331,7 +351,7 @@ void CGArithmetic(char* op, char* varType)
     return;
 }
 
-void CGCheckSpecialAssignment(char* op, char* varType)
+int CGCheckSpecialAssignment(char* op, char* varType)
 {
     if(strcmp(op, "+=")==0)
         CGArithmetic("+", varType);
@@ -343,6 +363,10 @@ void CGCheckSpecialAssignment(char* op, char* varType)
         CGArithmetic("/", varType);
     else if(strcmp(op, "%=")==0)
         CGArithmetic("%", varType);
+    if(strcmp(op, "=")==0)
+        return 1;
+    else
+        return 0;
 }
 
 void CGSaveToRegister(char* index, char* type)
@@ -368,6 +392,78 @@ void CGSaveToGlobal(char* name, char* type)
     strcat(str, " ");
     strcat(str, typeEncode(type));
     strcat(str, "\n");
+    writeAssemblyCode(str);
+    return;
+}
+
+void CGWhileHead(int count)
+{
+    char str[STR_SIZE] = {};
+    char myCount[10] = {};
+    sprintf(myCount, "%d", count);
+    strcpy(str, "While_");
+    strcat(str, myCount);
+    strcat(str, ":\n");
+    writeAssemblyCode(str);
+    return;
+}
+
+void CGWhileLoop(char* op, char* type, int count)
+{
+    char str[STR_SIZE] = {};
+    char myCount[10] = {};
+    sprintf(myCount, "%d", count);
+    if(strcmp(type, "int") == 0)
+        strcpy(str, "i");
+    else if(strcmp(type, "float") == 0)
+        strcpy(str, "f");
+    //operation here
+    if(strcmp(op, "==")==0)
+    {
+        strcat(str, "sub\nifne ENDWhile_");
+        strcat(str, myCount);
+    }  
+    else if(strcmp(op, ">=")==0)
+    {
+        strcat(str, "sub\niflt ENDWhile_");
+        strcat(str, myCount);
+    } 
+    else if(strcmp(op, "<=")==0)
+    {
+        strcat(str, "sub\nifgt ENDWhile_");
+        strcat(str, myCount);
+    } 
+    else if(strcmp(op, "!=")==0)
+    {
+        strcat(str, "sub\nifeq ENDWhile_");
+        strcat(str, myCount);
+    } 
+    else if(strcmp(op, ">")==0)
+    {
+        strcat(str, "sub\nifle ENDWhile_");
+        strcat(str, myCount);
+    } 
+    else if(strcmp(op, "<")==0)
+    {
+        strcat(str, "sub\nifge ENDWhile_");
+        strcat(str, myCount);
+    }
+    strcat(str, "\n");
+    writeAssemblyCode(str);
+    return;
+}
+
+void CGWhileEnd(int count)
+{
+    char str[STR_SIZE] = {};
+    char myCount[10] = {};
+    sprintf(myCount, "%d", count);
+    strcat(str, "goto While_");
+    strcat(str, myCount);
+    strcat(str, "\n");
+    strcat(str, "ENDWhile_");
+    strcat(str, myCount);
+    strcat(str, ":\n");
     writeAssemblyCode(str);
     return;
 }
